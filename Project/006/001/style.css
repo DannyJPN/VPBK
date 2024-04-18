@@ -1,0 +1,42 @@
+
+BODY {
+	SCROLLBAR-FACE-COLOR: #000000; SCROLLBAR-HIGHLIGHT-COLOR: #ffffff; SCROLLBAR-SHADOW-COLOR: #2e425a; SCROLLBAR-3DLIGHT-COLOR: #2e425a; 
+	SCROLLBAR-ARROW-COLOR: #bccbdc; SCROLLBAR-TRACK-COLOR: #2e425a; SCROLLBAR-DARKSHADOW-COLOR: #000000; BACKGROUND-COLOR: #000000
+}
+A:link 
+{
+	COLOR: #bccbdc; TEXT-DECORATION: none
+}
+A:active 
+{
+	COLOR: #bccbdc; TEXT-DECORATION: none
+}
+A:visited 
+{
+	COLOR: #bccbdc; TEXT-DECORATION: none
+}
+A:hover 
+{
+	COLOR: #597795; TEXT-DECORATION: underline
+}
+#maintitle
+{
+	font-size: 40px;
+	
+}
+.menuitem
+{
+	font-size: 12px;
+	font-family: "verdana";
+}
+.menutitle
+{
+	
+	font-family: "verdana";
+	font-size: 17px;
+}
+.scanpic
+{
+	text-align: "center"
+	
+}

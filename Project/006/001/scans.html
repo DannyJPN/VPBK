@@ -1,0 +1,590 @@
+<html><head><title>NMAp Network SCanning</title>
+<META content="Put text here" name=classification>
+<META content="Your name" name=Author>
+<META content="Layout is Copyright © http://www.gnext.vze.com" name=copyright>
+<META content="Your Keywords here" name=keywords>
+<META content="Your Site Description here" name=description>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+
+<BODY text=white bottomMargin=0 vLink=white link=#bccbdc bgColor=black 
+leftMargin=0 topMargin=0 rightMargin=0>
+
+
+
+<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0" valign="top">
+  <tr>
+    <td width="130" valign="top"><br>
+      <table align="center" width="150" border="1" bordercolor="#3399cc" "cellspacing="0" cellpadding="0" valign="top">
+        <tr> 
+          <td class="menutitle" height="20" bgcolor="#336699" valign="center" align="center"> Menu</td>
+        </tr>
+        <tr> 
+          <td valign="top" align="center"> 
+            <p  >
+              
+ <a class="menuitem" href="index.html">o NMAPu</a><BR>
+ <a class="menuitem" href="scans.html">Skeny</a><BR>
+ <a class="menuitem" href="conclusion.html">Závěr</a><BR>
+
+							
+              </p>
+            </td>
+        </tr>
+      </table>
+      <br>
+
+     <BR>
+      
+
+      <br>
+    </td>
+    <td width="482" valign="top"> 
+      <center>
+ 
+				<a href="https://nmap.org">
+				<center><p id="maintitle">NMAP</p></center>
+				</a>
+      </center>
+      <br>
+      <table align="center" width="80%" border="1" bordercolor="#3399cc" cellspacing="1" cellpadding="1" valign="top">
+        <tr> 
+          <td height="20" bgcolor=#336699 valign="center">
+		  Typy scanů</td>
+        </tr>
+        <tr> 
+          <td valign="top"> 
+			<h2>TCP scan</h2>
+			<p>TCP scan je nejzákladnějším aktivním skenem. Používá systemové volání connect,takže není závislý na generátoru paketů. 
+			Navazuje regulérní TCP threeway handshake. Je však současně snadno odhalitelný, protože generuje poměrně hodně provozu.
+			Kvůli třícestnému handshake procesu vyvolá většinou 3 pakety. NMAP pošle standardní TCP paket na daný port s příznakem SYN.
+			V případě,že je port <i>otevřený</i>, odpoví skenovaný stroj standardně paketem s příznakem SYN/ACK a NMAP dokončí sérii paketem ACK,což dokončí spojení. Potom NMAP násilně ukončí spojení pomocí paketu s příznakem RST.
+			Pokud je port <i>zavřený</i>, odpoví cíl RST paketem. Nepříjemná situace nastává,když cílový stroj neodpoví vůbec. Takový port je pak označen jako <i>filtered</i>, neboli <i>filtrovaný</i>.
+			Obvykle to je způsobeno tím,že port je blokovaný pomocí firewallu anebo tím,že skenovaná IP vůbec neexistuje či není dostupná z jiného důvodu.
+			Tento sken je velmi nápadný,jednak kvůli počtu paketů,a jednak kvůli tomu,že SYN pakety přicházející do sítě zvenčí jsou velice nestandardní věc,a většina firewallů SYN pakety zvenčí defaultně blokuje.
+			</p>
+			<p>
+			Pro testování jsem si připravil síť několika virtuálních zařízení a do testu zahrnul i zařízení aktuálně přitomná na domácí síti. Udělal jsem to proto,abych přidal náhodný prvek.
+			TCP sken se aktivuje příkazem "nmap -sT -v <i>cíl</i>". Parametr <i>-v</i> je jen zvýšení výřečnosti výstupu programu.
+			Sken našel na síti 192.168.0.0/16 celkem 14 strojů. Podívejme se například na výstup pro jeden z virtuálních strojů,které jsem nakonfiguroval na síti 192.168.56.0/24.
+			<p class="scanpic"><img src="images/nresult_T1.jpg" alt="NMAP result of TCP scan 1" width="parent" max-width="100%"></p></p>
+			Na obrázku je vidět,že NMAP vyhodnotil 987 portů jako <i>filtered</i> (ne <i>closed</i>). Není bez zajímavosti,že toto by měl být stroj chráněný firewallem.
+			Ale bylo nalezeno poměrně dost důležitých a známých portů ve stavu <i>open</i>. Podobná situace byla i u ostatních strojů na stejné podsíti,takže jsem firewall asi nastavil chybně, když i TCP scan,nejhlasitější útok NMAPu,prošel.
+			Pojďme se podívat,jak to vypadalo na síťové úrovni.  Výstup jsem omezil pouze pro komunikaci se strojem 192.168.56.108.
+			<p class="scanpic"><img src="images/wresult_T1.jpg" alt="NMAP result of TCP scan 1 viewed in Wireshark" width="parent" max-width="100%"></p></p>
+			Na obrázku jsem vyznačil jeden z úspěšných skenů, konkrétně proti portu 443 (HTTPS). Od řádku 18357 je zřetelně vidět,že na SYN paket útočícího stroje zareagoval stroj 108 paketem SYN+ACK a pak útočník dokončil spojení ACK paketem,načež spojení "zaříznul" RST paketem.
+			ACK příznak byl přidán pravděpodobně proto,aby skenovaný stroj nezareagoval ještě jednou. 
+			Současně je na obrázku vidět spousta SYN paketů na různé další porty,na které nebyla zaznamenána žádná odpověď. Proč? Pravděpodobně za to může výchozí pravidlo firewallu: deny all,aneb "zablokuj všechno,pro co nemáš explicitní pravidlo".
+			</p>
+			<p>
+			Firewall tedy přinejmenším nějaké porty ochránil. Celkem vzato však sken poskytl poměrně dost informací o tom,jaké služby na daném stroji běží. 
+			Odhalil běžící SSH Server,webové servery a emailové servery v šifrovaných i nešifrovaných verzích. Dále našel další služby,které jsou pravděpodobně součástí výchozí konfigurace,protože jsem o nich nikdy dřív neslyšel. 
+			Jsou to NNTP služba pro sdílení obsahu diskuzních skupin,SNEWS port,který je jeho šifrovanou verzí,a také port 587 Message Submission,což je služba kooperující s SMTP protokolem. Také je tam vidět TCP verze DNS protokolu.
+			</p>
+						
+			
+			
+		  </td>
+        </tr>  
+        <tr> 
+          <td valign="top"> 
+			<h2>SYN scan</h2>
+			<p>
+			SYN scan je velmi podobný TCP skenu. Nepoužívá už systémové volání connect, ale posílá stejný paket. Začíná úplně stejně jako TCP scan,ale spojení už nedokončí a jen ho zajímá,jestli mu přijde SYN/ACK paket.
+			Jeho rozlišovací schopnosti a obrana proti němu je prakticky shodná s TCP scanem. Přesto býval nazýván "stealth" scanem,kvůli zredukovanému počtu paketů.
+			I on je však snadno rozlišitelný dnešními firewally,protože jde stále o regulérní SYN paket,který zvenčí do sítě opravdu chodit nemá,a každá výjimka,jakou je například webový server,by měla být velmi dobře chráněna.
+			
+			</p>
+			<p>
+			SYN sken se aktivuje příkazem "nmap -sS -v <i>cíl</i>". 
+			Sken opět našel všech 14 strojů. Otázka je,jak moc přitom použil informace z předchozího TCP skenu. Pro co nejlepší srovnání zkontrolujeme výsledky pro ten stejný stroj s IP 192.168.56.108.
+			<p class="scanpic"><img src="images/nresult_S1.jpg" alt="NMAP result of SYN scan 1" width="parent" max-width="100%"></p></p>
+			Výstup SYN scanu vypadá velmi zajímavě: označil 991 portů jako<i>filtered</i>,ale některé porty označil i jako <i>closed</i>,a to porty,které TCP scan označil jako <i>opened</i>.
+			Také označil některé otevřené porty ze skenu TCP jako filtrované. Co se stalo? Zmýlil se jeden ze skenů? Změnil se mezi skeny stav cílového stroje?
+			SYN scan by dle dokumentace NMAPu měl být přesnější,protože TCP sken nepoužívá raw sockety a nemá dost velkou kontrolu nad přijatými výsledky.
+			Rozhodl jsem se tedy zkotnrolovat některý z kolidujících portů na tomto stroji,např. port 143 IMAP,na síťové úrovni:
+			Zde výstup TCP skenu:
+			<p class="scanpic"><img src="images/wresult_T2.jpg" alt="NMAP result of TCP scan 2 viewed in Wireshark" width="parent" max-width="100%"></p>
+			A zde výstup SYN skenu:
+			<p class="scanpic"><img src="images/wresult_S1.jpg" alt="NMAP result of SYN scan 1 viewed in Wireshark" width="parent" max-width="100%"></p>
+			Tady se ukazuje,že TCP sken zřejmě nemá úplně stejné interpretační dovednosti. Na záznamu z WireSharku je vidět,že když útočník dostal RST paket,prostě to zkoušel znovu a znovu.
+			Jenže NMAP vyhodnotil podle tohohle port jako otevřený. Proč,je mi záhadou. Nicméně tím,kdo reagoval na RST pakety,už nejspíš nebyl NMAP: byl to operační systém. U TCP skenu totiž používá NMAP volání systému connect.
+			Naproti tomu SYN scan,který systémové volání nepoužil,na RST paket nezareagoval a prostě port vyhodnotil jako zavřený. 
+			Nicméně fakt je,že na daném stroji by skutečně IMAP server běžet měl. Zmýlil jsem si stroj? Je to možné,SYN scan našel otevřený IMAP port na stroji 192.168.56.101.
+			<p class="scanpic"><img src="images/nresult_S2.jpg" alt="NMAP result of SYN scan 2" width="parent" max-width="100%"></p>
+			Na tom stroji by však současně měl běžet také DNS server. Nedivím se však tomu,že SYN scan jej nenašel: DNS je primárně UDP služba.
+			Podívejme se tedy,jak zareagoval port 143 a 53 na stroji 101:
+			<p class="scanpic"><img src="images/wresult_S2.jpg" alt="NMAP result of SYN scan 2 viewed in WireShark" width="parent" max-width="100%"></p>
+			</p>
+			<p>
+			Na obrázku je viditelné,že port 53 zareagoval RST+ACK paketem, tedy je pro SYN scan uzavřený. Port 143 zareagoval SYN+ACK zpárvou,na kterou útočník už nereagoval,takže cíl posílal zprávu pořád dokola.
+			SYN scan už ale v ten okamžik věděl,že port je otevřen,a tak se jím dále nezabýval. Otázka je,jak moc lze tento konkrétní sken považovat za směrodatný,kvůli kolizím. Uvidíme,co najdou další skeny.
+			</p>
+		  </td>
+        </tr>      
+
+        <tr> 
+          <td valign="top"> 
+			<h2>ACK scan</h2>
+			<p>
+			ACK scan je poměrně specifický sken. Narozdíl od většiny ostatních skenů není schopen rozlišit,zda je port otevřený nebo uzavřený,dokáže jen rozlišit,jestli ho chrání firewally nebo ne.
+			Sken posílá paket s příznakem ACK. To je paket,kterým se ukončuje třícestný handshake anebo potvrzuje čekání na data. Nedává však smysl,aby přišel ze zdroje,ze kterého nepřišel předtím žádný jiný paket.
+			Dává však smysl,aby takovýto paket přišel zvenčí-navíc jde o platný paket. Proto je pro firewall,hlavně bezestavový,poměrně velký problém tento sken zachytit,hlavně pokud jde o veřejně "vystrčený" port,jako je např. webserver.
+			Pokud skenovaný stroj zareaguje paketem RST,znamená to,že port je přístupný. Ale pokud na portu není navázané spojení, otevřený i zavřený port odpoví RST paketem a ACK scan ho označí jako <i>unfiltered</i>.
+			Pokud je však port něčím krytý,tak neodpoví vůbec-anebo přijde ICMP zpráva o jeho nedostupnosti. V takovém případě je port označen jako <i>filtered</i>.
+			ACK scan se kvůli této vlastnosti používá v kombinaci s jinými typy scanů,například s UDP skenem. Tento bude rozebrán později. Nyní však ve zkratce zmíním,že UDP scan je schopen označit port jako <i>open|filtered</i>,tedy že není schopen rozlišit,zda je port otevřený nebo filtrovaný.
+			Pokud UDP takto označí port,a současně ACK scan označí stejný port na stejném stroji jako <i>unfiltered</i>, je prakticky jisté,že port je otevřený.
+			Také se ACK scan používá k odlišení stavového a bezestavového firewallu. Bezestavový firewall má totiž podstatně větší potíže ACK scan zastavit,protože neeviduje spojení.
+			
+			
+			</p>
+			<p>
+			ACK scan pravděpodobně nedokáže rozseknout otázku kolize výsledků,ale podíváme se,co našel.
+			Aktivuje se příkazem "nmap -sA -v <i>cíl</i>". 
+			Podíváme se opět na našeho hosta 108:
+			<p class="scanpic"><img src="images/nresult_A1.jpg" alt="NMAP result of ACK scan 1" width="parent" max-width="100%"></p>
+			OK,máme tady 991 filtrovaných portů: to je stejný počet jako u SYN skenu,a při bližším pohledu zjistíme,že jsou to ty stejné porty: všechny porty,u kterých SYN scan dokázal určit status otevřený/zavřený,ACK scan označil jako <i>unfiltered</i>, tedy nechráněný.
+			Co však je zajímavé je to,že ACK scan našel na síti androidový telefon,který ostatní skeny zatím neodhalily:
+			<p class="scanpic"><img src="images/nresult_A2.jpg" alt="NMAP result of ACK scan 2" width="parent" max-width="100%"></p>
+			U ostatních zařízení ACK scan neukázal nic extra zajímavého. Našel jsem však jednu věc,která mě celkem vyděsila:
+			<p class="scanpic"><img src="images/nresult_A3.jpg" alt="NMAP result of ACK scan 3" width="parent" max-width="100%"></p>
+			Zjistil jsem,že zařízení router.asus.com,tedy moje výchozí brána,má zevnitř všechny porty nechráněné. To je hodně špatná zpráva,znamená to,že moje zařízení může být zranitelné ze sítě,takže jsem šel hned aktivovat firewall i na vnitřní stranu.
+			</p>
+			<p>Nyní se pojďme podívat,jak vypadala komunikace na síti. Nejprve se podívejme na stroj 108:
+			<p class="scanpic"><img src="images/wresult_A1.jpg" alt="NMAP result of ACK scan 1 viewed in WireShark" width="parent" max-width="100%"></p>
+			Na obrázku vidíme zával ACK paketů,na které nikdy nepřišla odpověď. Tyto porty ACK scan označil jako filtrované.
+			Je tam ale vidět i RST reakce na portu 22,díky které ACK scan označil port jako nechráněný,<i>unfiltered</i>. 
+			</p>
+			<p>
+			Je mi záhadou,proč předchozí skeny nenašly na síti telefon. Důvod může být jednoduchý: prostě nebyl připojený k WiFi a připojil se mezi skeny. Není to můj mobil, nevlastním žádný mobil,který by se uměl připojit k internetu.
+			Takže to byl buď mobil rodinného příslušníka,anebo nám někdo krade Wifi. TCP a SYN skeny každopádně s jeho adresou vůbec nekomunikovaly,WireShark záznam byl prázdný.
+			Nicméně podívejme se na jeho komunikaci u ACK scanu:
+			<p class="scanpic"><img src="images/wresult_A2.jpg" alt="NMAP result of ACK scan 2 viewed in WireShark" width="parent" max-width="100%"></p>
+			Je zde vidět,že prakticky na každý ACK paket přišel RST paket zpět. Proto jsou všechny porty volné a mobil je tedy proti skenům nechráněný.
+			Stejným způsobem dopadl i můj router. Nebudu zde proto ukazovat jeho WireShark report,což má i bezpečnostní důvody,ačkoli jsem své zařízení okamžitě po testech překonfiguroval.
+			</p>
+			<p>
+			Celkem vzato tedy ACK scan kolidující výsledky TCP vs SYN nerozsekl a sám o sobě ani nezjistil nic moc užitečného.
+			</p>
+			
+			
+		  </td>
+        </tr>      
+
+        <tr> 
+          <td valign="top"> 
+			<h2>FIN scan</h2>
+			<p>
+			FIN scan využívá ke své aktivitě paket s příznakem FIN. Jde o platný paket v TCP komunikaci,jedná se o ukončovací paket v komunikaci.
+			Je poněkud neobvyklé,aby šel bez příznaku PSH nebo ACK,ale není to nemožné. 
+			Firewally s ním mají díky tomu stejný problém jako s ACK skenem: FIN pakety se mohou objevit v komunikaci,ale nejsou na jejím začátku,takže bezestavové firewally a paketové filtry mají problém.
+			Pokud FIN scan přijme jako odpověď na svůj paket ICMP zprávu o nedostupnosti,označí port jako <i>filtered</i>,tedy chráněný.
+			Pokud dostane RST paket,označí port jako <i>closed</i>. Nedostane-li odpověď,nedokáže rozlišit,zda je jen chráněný,nebo otevřený.
+			Je to způsobeno tím,že podle dokumentu RFC 793 zavřený port má zareagovat na zprávu,která neobsahuje SYN/RST/ACK příznaky,RST paketem,ale otevřený port nemá reagovat na TCP zprávu,která není součástí navázaného spojení,nebo součástí navazovacího algoritmu.
+			Problémem FIN skenu je,že ne všechny systémy implementují RFC 793 správně. Jinak řečeno, reagují jinak než by měly. To je dvojsečný meč: NMAP díky tomuto chování nedokáže správně rozeznat stav portu,ale na oplátku to může prozradit,jaký operační systém běží na cílovém stroji.
+			
+			
+			</p>
+			<p>
+			FIN scan je prvním ze trojice skenů,které jsou primární pro průchod firewally.
+			Spouští se příkazem "nmap -sF -v <i>cíl</i>". 			Aby bylo srovnání kompletní,opět koukneme nejprve na stroj 108:
+			<p class="scanpic"><img src="images/nresult_F1.jpg" alt="NMAP result of FIN scan 1" width="parent" max-width="100%"></p>
+			Vidíme,že ani FIN scan nám toho příliš sám o sobě neřekl. Všechny porty označil jako <i>open|filtered</i>. Ale v kombinaci s ACK scanem,který označil 991 z 1000 portů jako <i>filtered</i>,lze vyčíst,že všechny porty,které ACK označil jako <i>unfiltered</i>,jsou ve skutečnosti otevřené.
+			To podporuje teorii,že TCP scan byl o něco přesnější,protože také označil porty za otevřené-současně ale označil jako otevřené porty,které FIN a ACK oznařili jako filtrované.
+			Zajímavý ale je např. výsledek skenu proti telefonu: 
+			<p class="scanpic"><img src="images/nresult_F2.jpg" alt="NMAP result of FIN scan 2" width="parent" max-width="100%"></p>
+			Podle FIN skenu je všech 1000 portů na telefonu uzavřených. (Poznámka: NMAP defaultně skenuje pouze well-known porty známých služeb. Je to možné změnit parametrem -p,ale já jsem to z časových důvodů neudělal.)
+			ACK scan je označil jako <i>unfiltered</i>. FIN scan jako <i>closed</i>. Tím vlastně FIN scan pravděpodobně ACK "překonal",protože ACK scan neumí říct otevřený/zavřený. FIN scan vyhodnotil telefon jako bezpečný se všemi podstatnými porty zavřenými.
+			Horší zpráva byla na routeru:
+			<p class="scanpic"><img src="images/nresult_F3.jpg" alt="NMAP result of FIN scan 3" width="parent" max-width="100%"></p>
+			Většina portů nerozhodně otevřená/chráněná. Uzavřené jen porty pro FTP data a port 445 pro MIcrosoft Windows sdílení souborů a přímý networking. Upřímně,je to Windowsová služba,takže se nedivím,že na routeru neběží.
+			Ale ACK scan vyhodnotil router jako <i>unfiltered</i>. Současně FIN scan označil kromě dvou všechny porty jako <i>open|filtered</i>. To je děsivá zpráva: Je nemožné aby byl port filtrovaný a nefiltrovaný současně.
+			Tohle je přesně situace,kterou jsem zmiňoval u ACK scanu v teoretické části. Tato situace znamená,že 998 portů na routeru bylo skutečně otevřených.
+			
+			</p>
+			
+			<p>
+			Na síti ke komunikaci není moc co říci. Jak vidíme na obrázku,u hosta 108 došlo jen k záplavě FIN paketů,na které nedorazila žádná odezva.
+			<p class="scanpic"><img src="images/wresult_F1.jpg" alt="NMAP result of FIN scan 1 viewed in WireShark" width="parent" max-width="100%"></p>
+			U mobilu naopak došlo k velké záplavě RST paketů zpět. Záhadou mi však je,že FIN scan útočil i na porty vyšší než 1000,ale jen některé konkrétní.
+			<p class="scanpic"><img src="images/wresult_F2.jpg" alt="NMAP result of FIN scan 2 viewed in WireShark" width="parent" max-width="100%"></p>
+				Například port 8080. Na tenhle port se ale často přesměrovává HTTP služba,v rámci obrany stylem "security by obscurity". To je určitě dobrá taktika,ale sama o sobě žádnou obranou není.
+				Dále tam je vidět port 3306 od MySQL protokolu. Na základě toho se domnívám,že NMAP neútočí ve skutečnosti na prvních tisíc portů v pořadí čísel,ale má seznam známých služeb a také portů,na které se nejčastěji přesměrovává obscurita.
+			A co se týče routeru, není už co dodat k FIN scanu,je vidět FIN záplava na dříve zmíněné porty, jeden RST/ACK z portu 445 (proto zavřený),ale co je zajímavé je,že jeho DNS server evidentně zná hostname zařízení na síti,které nejsou jejich doménovými jmény.
+			NMAP automaticky dělá u všech skenů reverzní překlad IP->doména,pokud mu to parametrem -n nezakážete,ale je mi záhadou,jak se tam dostala jména hostů.
+			<p class="scanpic"><img src="images/wresult_F2.jpg" alt="NMAP result of FIN scan 2 viewed in WireShark" width="parent" max-width="100%"></p>
+			</p>
+			
+		  </td>
+        </tr>      
+
+        <tr> 
+          <td valign="top"> 
+			<h2>NULL scan</h2>
+			<p>
+			Null scan jako první ze zmíněných skenů představuje specifickou vlastnost svých paketů.
+			Jde o nelegitimnost paketu: Null scan testuje porty pomocí paketu,který neobsahuje vůbec žádné příznaky. To není legitimní paket,který by se mohl objevit v běžném provozu.
+			Teoreticky by měl být tedy snadno zachytitelný na firewallech,ale  stejně jako FIN scan poměrně snadno firewally prochází,hlavně bezestavovými,protože je poměrně obvyklé,že firewally jsou konfigurovány pro blokaci pouze SYN paketů.
+			NULL scan má shodnou interpretaci výsledků s FIN scanem. Také má stejnou slabinu,co se týče reakce systémů na tento sken,pokud neimplementují RFC 793 doslova.
+			
+			</p>
+			
+						<p>
+			NULL scan je druhým z této trojice.
+			Spouští se příkazem "nmap -sN -v <i>cíl</i>".
+			Vzhledem k identické interpretaci výsledků není příliš moc co říct. Na obrázcích je vidět,že výsledky skenu proti stroji 108 a routeru dopadly identicky oproti FIN scanu.
+			<p class="scanpic"><img src="images/nresult_N1.jpg" alt="NMAP result of NULL scan 1" width="parent" max-width="100%"></p>
+			<p class="scanpic"><img src="images/nresult_N2.jpg" alt="NMAP result of NULL scan 2" width="parent" max-width="100%"></p>
+			Android telefon nebyl tímto skenem nalezen. Tím bylo potvrzeno,že NMAP nepoužívá informace z předchozích skenů,protože není důvod,aby ho NMAP vynechal.
+			Pokud mu to parametrem -Pn nezakážete, provede nejprve vždy Ping Scan,aby zjistil,jaká zařízení jsou na síti. Více o Ping Scanu později.
+			Pro dokončení jen ukážu WireSharkem zachycenou komunikaci s routerem,abych ukázal obě odpovědi:
+			<p class="scanpic"><img src="images/wresult_N1.jpg" alt="NMAP result of NULL scan 1 viewed in WireShark" width="parent" max-width="100%"></p>
+			
+			</p>
+			
+		  </td>
+        </tr>      
+
+        <tr> 
+          <td valign="top"> 
+			<h2>XMAS scan</h2>
+			<p>Dalším podobným skenem je XMAS scan. I on má stejné interpretace výsledků a stejné slabiny jako NULL a FIN skeny. Proto bývají tyto tři skeny někdy představovány společně.
+			XMAS scan získal své jméno podle příznaků,které používá. Jeho pakety používají příznaky FIN,PSH a URG. PSH příznak instruuje cíl,aby začal zpracovávat naposílaná data a URG příznak určuje,že paket je priorizován.
+			To ulehčuje cestu paketu-cílové zařízení tento paket zpracuje dříve než neurgentní pakety.
+			Tyto příznaky činí z šestibitového pole FLags v TCP paketu sekvenci 101010,která autorům skenu zřejmě připomínala vánoční stromeček. Netuším proč.
+			Tyto pakety se však v provozu objevit mohou a jsou tedy legitimní.
+			</p>
+			<p>
+			Třetím mušketýrem je scan XMAS,který se	spouští příkazem "nmap -sX -v <i>cíl</i>".
+			Tentokrát už celkem bez komentáře:
+			Výsledek pro XMAS scan stroje 108 a routeru:
+			<p class="scanpic"><img src="images/nresult_X1.jpg" alt="NMAP result of XMAS scan 1" width="parent" max-width="100%"></p>
+			<p class="scanpic"><img src="images/nresult_X2.jpg" alt="NMAP result of XMAS scan 2" width="parent" max-width="100%"></p>
+			Možná bych jen mohl poukázat na možný důvod,proč se tento sken jmenuje XMAS:
+					<p class="scanpic"><img src="images/wresult_X1.jpg" alt="NMAP result of XMAS scan 1 viewed in WireShark" width="parent" max-width="100%"></p>
+			Na obrázku jsou vyznačeny flagy PSH,FIN,URG. Tak,jak je formátuje NMAP,možná lze usoudit,že nějaká představa svíček na stromečku na tom asi je,ale podle mě člověk potřebuje asi hodně fantazie...
+			
+			</p>
+						
+			
+			<p>
+			Když shrnu výsledky těchto tří testů,je jasně vidět,že jsou částečně zaměnitelné,a řekl bych,že typ výzvy je různý jen proto,aby bylo snazší projít pravidly blokovacích systémů.
+			Ani jeden ze skenů neposkytl příliš mnoho relevantních informací,ale všechny poskytly prakticky stejné informace.
+			Stejně jako ACK scan jsou tedy spíš pomocného typu a slouží k omezení cílů pro skeny jako je SYN,který má jasněji definovány reakce.
+			</p>
+			
+		  </td>
+        </tr>      
+
+        <tr> 
+          <td valign="top"> 
+			<h2>Ping scan</h2>
+			<p>
+			Název "ping" scan nepopisuje skutečnou aktivitu tohoto skenu úplně přesně. Správnější název je Host Discovery Scan. Má mnoho forem,NMAP umožňuje uživateli velkou kontrolu nad tím,co tento sken skuutečně dělá.
+			Jak už napovídá jeho název,používá hlavně ICMP Ping,ale také spoustu různých TCP i UDP paketů. Ping scan totiž vůbec nezajímá druh odpovědi,zajímá ho pouze to,zda vůbec něco přišlo.
+			Používá se ke zjištění,která IP adresy jsou vůbec na síti a dostupné. Výchozí stav je,že NMAP odešle ICMP Ping,TCP SYN ping na porty 80 a 443 a ICMP žádost o časové razítko. Na lokální síti používá NMAP Ping scan ARP zprávy.
+			Některé verze Ping scanu vyžadují práva administrátora. Jeho cílem je prostě vynutit si odpověď,jakoukoliv,jen aby zjistil,že daná IP adresa je přístupná.
+			Takže prostě pokud dostane jakoukoliv odpověď,vyhodnotí cíl jako přístupný,jinak jej vyhodnotí jako neexistující.
+			</p>
+			<p>
+			Jak jsem již zmínil,Ping Scan opravdu jen zjišťuje,zda je zařízení na síti.
+			Výsledky NMAPu na obrázku níže mají více než dostatečně vypovídací hodnotu:
+				<p class="scanpic"><img src="images/nresult_P1.jpg" alt="NMAP result of Ping scan 1" width="parent" max-width="100%"></p>
+			Na obrázku je vidět hned několik hostů,kteří byli označeni jako aktivní "Host is up" a další,kteří na síti nejsou, tedy "host down".
+			
+			</p>
+			<p>
+			K NMAP výsledku Ping Scanu není mnoho co říci,kromě tedy toho,že ani on nenašel ten telefon.
+			Spouští se příkazem "nmap -sn -v <i>cíl</i>". Volitelně se dají použít různé parametry -PX,kde X označuje typ skenu. Konkrétní seznam těchto možností naleznete na <a href="nmap.org">nmap.org</a>.
+			Nicméně WireShark mě zarazil. Když jsem aktivoval filtr pro adresy svých sítí,našlo to pouze provoz mezi útočníkem a jiným zařízením na síti,které se mi nepodařilo identifikovat.
+			Nejednalo se však o provoz NMAPu,takže ho z bezpečnostních důvodů zde ukazovat nebudu.
+			To však znamená,že nebyl použit ICMP protokol ani TCP syn ping. Filtry na tyto protokoly prostě vypsaly prázdný výstup.
+			Pravda se ukázala až po vyfiltrování na protokol ARP:
+			<p class="scanpic"><img src="images/wresult_P1.jpg" alt="NMAP result of Ping scan 1 viewed in Wireshark" width="parent" max-width="100%"></p>
+			Zde jasně vidíme ARP zprávy,které NMAP použil,protože zjistil,že všechny cíle jsou na jeho lokální síti. Je to jednoduchá analýza: kdo danou MAC adresu má,zareaguje na to,a pro NMAP je  tudíž aktivní.
+			Tento sken je silný,protože ARP provoz se nedá zablokovat,ale současně se nedá ani skrýt útočník,a je možný jen na lokální síti. Používá se tehdy,když útočník už má kontrolu nad některým zařízením na síti,ideálně nad více z nich.
+			Ale nic víc než to,zda je host na síti,z něj opravdu nevyrazíme.
+			</p>
+			
+		  </td>
+        </tr>      
+    
+        <tr> 
+          <td valign="top"> 
+			<h2>List scan</h2>
+			<p>
+			Vzdor svému názvu List scan není vlastně vůbec sken. Na síti,kde jsem jej testoval já,byl prakticky k ničemu. Nic totiž fakticky neskenuje,jen se ptá místního DNS serveru na to,zda zná doménové jméno dané IP adresy.
+			Pokud nedostane kladnou odpověď,vyhodnotí danou IP jako nepřístupnou. Vůbec se ji ale samu o sobě nepokusí kontaktovat,takže je sice téměř nedetekovatelný (hlavně pokud se NMAP ptá jiného DNS serveru než DNS serveru cíle,nebo pokud se ptá více DNS serverů),ale současně je velice nespolehlivý.
+			Například ve své síti,kde jsem jej testoval, sice dokázal zjistit názvy hostů,ale domníván se,že to je spíš následek některého z předchozích skenů,protože tyto údaje zaručeně na žádném DNS serveru nejsou. Každopádně,výsledek byl ten,že na síti je 0 hostů.
+			Takže vlastně nedetekoval dokonce ani sám sebe.
+			Stejně jako falešná negativa může vyvolat i falešná pozitiva: tedy že najde DNS záznam hosta,který už neexistuje a DNS server to ještě neví.
+			
+			</p>
+			
+			<p>	
+			Jak jsem zmínil v teoretické části,List scan je vlastně spíš takový "DOS to DNS". Aktivuje se příkazem "nmap -sL -v <i>cíl</i>".
+			NMAP výstup mluví za vše:
+			<p class="scanpic"><img src="images/nresult_L1.jpg" alt="NMAP result of List scan 1" width="parent" max-width="100%"></p>
+			Na tomto výstupu vidíme vlastně jen opravdu seznam adres, popř jmen hostů,pokud nějaké najde. Sken nám ale sám o sobě neřekne vůbec nic o tom,zda je host na síti.
+			Jen zjistí,že tohoto hosta zná DNS. 
+			Na výstupu WireSharku pro tento sken opravdu filtr pro TCP,ARP ani UDP nic nevyhodil,leda můj vlastní provoz do internetu,který tady ukazovat nebudu.
+			Ale důležité je toto:
+			<p class="scanpic"><img src="images/wresult_L1.jpg" alt="NMAP result of List scan 1 viewed in WireShark" width="parent" max-width="100%"></p>
+			Na tomto obrázku je vidět záplava DNS dotazů na lokální DNS server 192.168.1.1,což je moje brána. Otázkou mi opravdu je,jak se dověděl ta jména hostů.
+			Ale OK,zná je a List scan je z něho dostal.
+			K ničemu jinému tento sken vlastně ani není. Je to jen hledač doménových jmen.
+			
+			
+			</p>
+			
+		  </td>
+        </tr>      
+        <tr> 
+          <td valign="top"> 
+			<h2>IP Protocol scan</h2>
+			<p>
+			IP protocol scan také není úplně port skenem,což jen prokazuje obrovskou variabilitu a schopnosti NMAPu,přesněji skutečnost,že se zdaleka nejedná jen o skener portů.
+			Tento sken místo portů rotuje přes pole pro číslo transportního protokolu,takže zjišťuje,jaké protokoly transportní vrstvy cíl podporuje.
+			Dostane-li tento sken odpověď ICMP protocol unreachable,definuje daný protokol jako <i>closed</i>. Jiná ICMP unreachable zpráva znamená,že protokol je ve stavu <i>filtered</i>.
+			Pokud sken dostane jakoukoliv jinou validní odpověď, označí protokol jako <i>open</i>. Pokud však nedostane žádnou odpověď,může to znamnat dvě věci: buď je protokol zahazován firewallem,nebo daná služba na prázdné pakety nereaguje.
+			Tento problém má i UDP scan,který rozvedu v další sekci. Kvůli tomu je IP protocol scan oproti ostatním poměrně hodně pomalý.
+			
+			</p>
+			
+			<p>
+			Sken IP protokolů se aktivuje příkazem "nmap -sO -v <i>cíl</i>".
+			Jak jsem již zmínil,neskenuje porty,nýbrž protokoly,takže jeho výstupy vypadají jinak. Např. pro stroj 108 vypadá výstup takto:
+			<p class="scanpic"><img src="images/nresult_O1.jpg" alt="NMAP result of IP protocol scan 1" width="parent" max-width="100%"></p>
+			NMAP odhalil,že na TCP protokolu stroj komunikuje,žádný jiný protokol zřejmě nezareagoval.
+			Když se však podíváme na některé jiné stroje,dostaneme zajímavější výstup:
+			<p class="scanpic"><img src="images/nresult_O2.jpg" alt="NMAP result of IP protocol scan 2" width="parent" max-width="100%"></p>
+			Toto je výstup ze stroje 56.104. To by měl být DNS server,ale to nám IP scan neřekne. Nicméně vidíme,že na protokolu UDP i TCP reaguje. Taky reaguje na protokolu ICMP.
+			Dalších několik protokolů nezareagovalo,a upřímně,o žádném z <i>open|filtered</i> protokolů z tohoto obrázku jsem ještě nikdy neslyšel.
+			Ostatní jsou pozavírané.
+			To jen dokazuje,že na transportní vrstvě existuje výrazně víc protokolů než jen TCP,UDP a ICMP a že rozhodně je co zkoumat.
+			Nejsem si jistý, jak by se tento sken dal využít při skenování portů,ale přinejmenším dokáže zúžit výběr (např. nemá smysl zkoušet UDP scan proti stroji,který má UDP protokol zavřený)
+			
+			</p>
+			
+			<p> Pojďme se ještě podívat na síťovou úroveň. Podíváme se na stroj 56.104,protože se u něj vyskytují všechny stavy.
+			<p class="scanpic"><img src="images/wresult_O1.jpg" alt="NMAP result of IP protocol scan 1 viewed in WireShark" width="parent" max-width="100%"></p>
+			Na tomto snímku můžeme vidět např. výzvu TCP protokolu,která byla defaultně směřována na port 80 jakožto jeden z neužívanějších,dále výzvu UDP,kde přišla zpráva Port Unreachable.
+			Pozor,Destination Unreachable je typ zprávy,důležitý je konkrétní kód. V záplavě reakcí Protocol Unreachable je snadno přehlédnutelná.
+			Na obrázku jsem vyznačil v jednom paketu,co se přesně iteruje: je to pole Protocol vlevo dole,které je u tohoto konkrétního paketu 121. To je SMP,Simple Messaging protokol,který slouží k odesílání přímých zpráv.
+			Místo portů IP scan iteruje přes toto pole.
+			
+			
+			</p>
+			
+			
+		  </td>
+        </tr>  
+        <tr> 
+          <td valign="top"> 
+			<h2>UDP scan</h2>
+			<p>
+			UDP scan je užitečným skenem,protože žádný jiný sken NMAPu nedokáže skenovat UDP porty. Tímpádem je to jediný sken,který může odhalit služby jako DNS,DHCP,SNMP,TFTP apod.,které běží na UDP protokolu.
+			UDP scan je velmi pomalým skenem,protože nespolehlivost a nespojovost UDP protokolu vytváří potíže. Když odpověď na UDP paket dorazí,znamená to,že port je ve stavu <i>open</i>. ICMP port unreachable zpráva znamená,že stav je <i>closed</i>.
+			Ostatní ICMP unreachable znamenají <i>filtered</i>. Ale co když žádná odpověĎ nedorazí?
+			U UDP je to poměrně dost složité. Jak jsem již zmínil,UDP služby obvykle neodpovídají na prázdné pakety,protože to není legitimní provoz,v běžném provozu se neobjevuje. Jenže se může také stát,že firewall nebo jiný paketový filtr paket beze slova zahodí.
+			A třetí možnost je,že paket se mohl prostě ztratit. UDP scan tyto tři možnosti nedokáže rozeznat,takže posílá paket několikrát a čeká na odpovědi-proto tak trvá.
+			Takový port označuje jako <i>open|filtered</i>.
+			
+			
+			</p>
+	
+			<p>
+				UDP scan se spouští příkazem "nmap -sU -v <i>cíl</i>" a je to jediný sken kombinovatelný s ostatními skeny,jinak se totiž musejí spouštět po jednom.
+				Zajímavé je,že UDP scan opět našel Android. Ale pojďme se podívat na zajímavější zařízení,tedy taková,kde sken něco našel.
+				To je například 56.109:
+				<p class="scanpic"><img src="images/nresult_U1.jpg" alt="NMAP result of UDP scan 1" width="parent" max-width="100%"></p>
+				Vidíme,že na stroji byl odhalen otevřený port DNS. Dále jsou vidět porty,které nezareagovaly,tedy DHCP,Zero Config (jakýsi "autokonfigurátor" sítě) a IPP protokol (tiskový protokol).
+				Nevím,proč nezareagovaly,ale je vysoce pravděpodobné,že NMAP poslal prázdnou nebo nevalidní zprávu.
+				Naopak třeba náš známý stroj 108 nedal vůbec žádné odpovědi:
+				<p class="scanpic"><img src="images/nresult_U2.jpg" alt="NMAP result of UDP scan 2" width="parent" max-width="100%"></p>
+				Vidíme že všechny porty jsou <i>open|filtered</i>. Takže firewall se dost možná přece jen nějak projevil.
+			</p>		
+			
+			<p>
+			Na síťové úrovni prozkoukáme stroj 109,který měl nejvíce odpovědí:
+			<p class="scanpic"><img src="images/wresult_U1.jpg" alt="NMAP result of UDP scan 1 viewed in WireShark" width="parent" max-width="100%"></p>
+			Na obrázku je vidět množství reakcí Destination Unreachable-Port Unreachable,indikující zavřené porty.
+			Je tam také vidět DNS zpráva (prázdná),na kterou cíl zareagoval s tím,že to je neimplementovaný dotaz,čímž prozradil,že DNS server je aktivní.
+			Vidíme však,že UDP scan neřekl vůbec nic k výsledkům SYN/TCP/FIN/NULL/XMAS skenů.Ale poskytl informace o službách,které neužívají TCP,a zjistil že jich na síti moc není.
+			
+			</p>
+
+
+		</td>
+        </tr>      
+        <tr> 
+          <td valign="top"> 
+			<h2>SCTP INIT scan</h2>
+			<p>
+				SCTP INIT scan patří k nejnovějším typům skenů. Používá SCTP protokol,signalizační protokol transportní vrstvy určený pro VOIP komunikaci CSS7.
+				Krátce řečeno,jedná se o ekvivalent TCP SYN skenu v prostředí VOIP. I on posílá inicializační paket SCTP INIT,který má stejnou roli jako TCP SYN.
+				Stejně jako TCP SYN spojení nedokončí,a stejným způsobem interpretuje výsledky.
+				Tyto pakety mohou vzbudit pozornost tam,kde se SCTP nepoužívá,ale jinak se jedná o zcela legitimní provoz.
+				
+			</p>
+			<p>
+			Spouští se příkazem  "nmap -sY -v <i>cíl</i>". Existuje také verze s přepínačem -sZ,což je SCTP ECHO sken. Ten jsem netestoval,protože se mi nepodařilo o něm zjistit dostatek informací.
+			SCTP INIT sken je použitelný spíš k detekci telefonních serverů a ostatních VOIP zařízení na síti,takže se podíváme,co na síti našel:
+			<p class="scanpic"><img src="images/nresult_Y1.jpg" alt="NMAP result of SCTP INIT scan 1" width="parent" max-width="100%"></p>
+			Jednoduše řečeno,vůbec nic. Na síti neběží vůbec žádný uživatel tohoto protokolu.
+			Na výstupu z WireSharku vidíme,že až na občasné zprávy o nedostupnosti z ICMP nedostává útočník žádné reakce:
+			<p class="scanpic"><img src="images/wresult_Y1.jpg" alt="NMAP result of SCTP INIT scan 1 viewed in WireShark" width="parent" max-width="100%"></p>
+			K tomuto skenu tedy není moc co říci. Je to dost specifická věc. Na výstupu z NMAPU navíc je vidět,že oskenoval pouze 52 portů. SCTP jich víc neužívá? Nepodařilo se mi dohledat.
+			Ale aspoň našel na síti opět telefon,ačkoli i jej vyhodnotil jako <i>all ports filtered</i>. Mobil mu neodpověděl.
+			
+			</p>
+			
+			
+			
+			
+		  </td>
+        </tr>      
+        <tr> 
+          <td valign="top"> 
+			<h2>Window scan</h2>
+			<p>
+			TCP Window scan je varieta ACK skenu,která kromě příznaků zkoumá ještě jedno pole: šířku TCP potvrzovacího okna. 
+			Jeho pakety vypadají stejně jako u ACK skenu,ale díky porovnávání pole window size dokáže lépe analyzovat odpovědi.
+			Zavřené porty totiž ve svých RST paketech tuto hodnotu nulují,zatímco otevřené ji nastavují. 
+			Tento sken má však jednu nevýhodu: toto implementují jen některé systémy,a tak platí podobná věc jako u FIN/XMAS/NULL skenů: NMAP špatně vyhodnotí stav portu,ale může pomoci odhalit operační systém cíle.
+			
+			</p>
+			
+			<p>
+			Window scan je varieta ACK scanu a porovnám tedy jejich výsledky přímo. Window scan se aktivuje příkazem "nmap -sW -v <i>cíl</i>".
+			Na následujícím obrázku je vidět seznam 9 uzavřených portů s tím,že 991 je jich filtrovaných. Při bližším srovnání s výsledkem ACK scanu zjistíme,že jsou to naprosto ty samé porty,které ACK scan označil jako <i>unfiltered</i>
+			<p class="scanpic"><img src="images/nresult_W1.jpg" alt="NMAP result of Window scan 1" width="parent" max-width="100%"></p>
+			Otázka je,jak moc to bylo přesné: jak jsem řekl, na Window scan reagují správně jenom některé systémy. A domnívám se,že v tomto případě Window scan jednoduše selhal,protože vím určitě,že na tomto subnetu mají všechna zařízení otevřený SSH port.
+			Na výstupu Window scanu je port zavřený a nelze tedy na výsledek tohoto skenu brát ohled.
+			</p>
+			<p>
+			Na výstupu z WireSharku se podíváme na výstup ze stroje 108:
+			<p class="scanpic"><img src="images/wresult_W1.jpg" alt="NMAP result of Window scan 1 viewed in WireShark" width="parent" max-width="100%"></p>
+			Bohužel ani ACK scan ani Window scan nenašly žádný port,který by zareagoval paketem RST s nenulovým oknem. To může znamenat dvě věci: buď daný systém jednoduše nemá implementaci,na kterou Window scan spoléhá,anebo na síti není žádný otevřený port.
+			Je vysoce nepravděpodobné,aby byly všechny porty na síti uzavřené.
+			Window scan nám tedy v tomto příliš nepomohl.
+			</p>
+			
+		  </td>
+        </tr>      
+        <tr> 
+          <td valign="top"> 
+			<h2>Maimon scan</h2>
+			<p>
+			Maimonův scan je varietou FIN scanu,je pojmenován po svém objeviteli Urieli Maimonovi. Používá paket s nastavenými příznaky FIN/ACK. To je legitimní paket při handshaku,který ukončuje TCP spojení.
+			Obvykle se užívá proti systémům z rodiny BSD,protože porušují RFC 793. Ten říká,že na takovýto paket by měly otevřené i zavřené porty posílat RST paket.
+			BSD systémy však na otevřených portech neodpoví. Maimon scan je nedokáže odlišit od portů krytých firewallem-ale dokáže je rozlišit od portů uzavřených.
+			
+			</p>
+			<p>
+			Maimonův scan se spouští příkazem "nmap -sM -v <i>cíl</i>".
+			Na výstupu z NMAPu můžeme vidět,že tento sken nezachytil nic extra relevantního. Může to být i tím,že na síti není žádný BSD systém. Nicméně Maimon scan vnímal většinu portů jako uzavřené,takže od otevřených je odlišit dokázal.
+			Porušují snad systémy mimo BSD rodinu daný RFC dokument také? 
+			<p class="scanpic"><img src="images/nresult_M1.jpg" alt="NMAP result of Maimon scan 1" width="parent" max-width="100%"></p>
+			Jediný systém 108 ukazuje své porty jako <i>open|filtered</i> a jako první ze skenů jednoznačně potvrdil přítomnost firewallu. Není reálné,aby všech 1000 portů bylo otevřených,ale filtrované všechny být klidně mohou.
+			</p>
+			<p>
+			NMAP nám toho moc neřekl,tak se pojďme podívat na WireShark:
+			<p class="scanpic"><img src="images/wresult_M1.jpg" alt="NMAP result of Window scan 1 viewed in WireShark" width="parent" max-width="100%"></p>
+			Toto je výstup Maimon skenu proti chráněnému stroji 108. Pakety mají příznaky FIN+ACK. Stroj 108 ale na žádném portu nijak nezareagoval. Firewall jeho porty úspěšně brání.
+			Na stroji 101,kde firewall není,vypadá situace jinak:
+			<p class="scanpic"><img src="images/wresult_M2.jpg" alt="NMAP result of Window scan 2 viewed in WireShark" width="parent" max-width="100%"></p>
+			Na tomto snímku je naopak vidět RST reakce na každý FIN/ACK paket. Proto sken interpretoval všechny porty jako uzavřené.
+			
+			</p>
+			
+			
+			
+			
+			
+			
+		  </td>
+        </tr>      
+        <tr> 
+          <td valign="top"> 
+			<h2>FTP bounce scan</h2>
+			<p>
+			FTP bounce scan je specifický sken tím,že jako první ze zmíněných potřebuje tři stroje: útočníka,cíl,a FTP server. Využívá faktu,že některé starší FTP servery mají tzv. aktivní mód-a nemají ho zabezpečený.
+			To umožňuje,aby se útočník spojil s FTP serverem a přikázal mu,aby poslal soubor na jiný stroj,než který ho k tomu instruuje.
+			Protože u těch "správných" serverů jde specifikovat i cílový port,dá se toto využít k port skenu,přičemž navíc útočník skryje svou identitu,protože pro veškeré detekce je za útočníka považován FTP server.
+			Pakety chodí z jeho adresy. NMAP posuzuje otevřenost či uzavřenost portu dle chybových hlášek FTP protokolu. Počet takto zneužitelných FTP serverů v internetu klesá,ale NMAP je dokáže hledat pomocí skriptu ftp-bounce,který je určen prostě k tomu,aby prověřil,že jde odeslat data na jiný cíl než na sebe.
+			Pokusil jsem se nakonfigurovat na vlastní síti takovýto server,ale VS FTPD zřejmě tuto zranitelnost nemá (skript jej označil za nevhodný). Snažil jsem se najít server,který zranitelný je-bez úspěchu.
+			Pak jsem se jej pokusil najít už rozfungovaný na internetu,ale po hodině skenování jsem dospěl k závěru,že o tento sken se z důvodů přílišné časové náročnosti nyní pokoušet dále nebudu.
+			</p>
+			<p>
+			FTP bounce scan je složitější na provedení kvůli nutnosti mít tři stroje. Aktivuje se příkazem "nmap -b <i>username</i>:<i>password</i>@<i>IP</i>:<i>port</i> -v <i>cíl</i>". 
+			Už z příkazu je vidět,že je výrazně složitější než ostatní skeny. Jak už jsem ale zmínil,nepodařilo se mi na síti najít ani vytvořit zranitelného FTP hosta,takže jsem tento sken nemohl prakticky provést.
+			Jedná se o poměrně starou zranitelnost,takže lze předpokládat,že chyba byla dávno opravena,ale to neznamená,že zranitelné stroje neexistují. Skenovat internet kvůli těmto hostům může být riskantní z právních důvodů.
+			O tento sken se zde tedy pokoušet nebudu.
+			</p>
+			
+			
+			
+		  </td>
+        </tr>      
+        <tr> 
+          <td valign="top"> 
+			<h2>Idle scan</h2>
+			<p>
+			Idle scan nebo také Zombie scan je vrcholovým skenem NMAPu. Je podobný FTP bounce scanu v tom,že potřebuje tři stroje. Také on využívá prostředníka,ale narozdíl od FTP scanu to může být libovolný stroj.
+			Musí splňovat jen dvě podmínky: musí inkrementovat čítač odeslaných paketů na globální bázi,a nikoli pro každého klienta zvlášť,a současně musí být skutečně "idle", tedy nesmí na něm probíhat žádná jiná komunikace. 
+			Nemusí se jednat vůbec o počítač,naopak,nejlepší "zombíci" bývají kamery,tiskárny a podobná zařízení.
+			Jedná se o nejsložitější sken vestavěný do NMAPu a patří také k těm nejlépe utajitelným.
+			SPoléhá na tzv. IP ID pole paketu,které se užívá při fragmentaci,a obsahuje právě počet paketů odeslaných na tomto zařízení.
+			
+			</p>
+			<p>
+			Stejně jako FTP bounce scan i Idle scan se pro mě ukázal být neproveditelný,protože není snadné zjistit,jestli daný host je vhodný: pokud ne,sken selže.
+			Rozvedu tedy alespoň teroeticky jeho funkcionalitu.
+			Aktivuje se příkazem "nmap -Pn -v -sI <i>zombie host</i> <i>cíl</i>".
+			Parametr -Pn je deaktivace Ping Scanu,který by cíli prozradil skutečnou identitu útočníka. Idle scan tím není nijak ovlivněn,ale je narušena jeho schopnost skrýt útočníka.
+			Podmínkou úspěšnosti skenu je samozřejmě nalezený zombie host.
+			Idle scan používá tzv. IP spoofing,tedy nahrazení reálné IP odesilatele IP adresou zombie hosta. To skrývá skutečnou identitu útočníka.
+			Mnohem silnější efekt tomuto dodává parametr -D (Decoy),který způsobí,že NMAP začne své pakety duplikovat a dosazovat do nich různé IP adresy.
+			Tak se podezření odvrátí od skutečného útočníka. Tím ale vygeneruje mnohem větší provoz,protože např. pro jeden SYN sken proti jednomu hostu vytvoří NMAP 1000 paketů,ale při použití parametru -D vytvoří 1000 paketů za každou IP,která je tímto parametrem specifikována.
+			Idle scan tedy pošle SYN/ACK paket na zombie hosta. Ten zareaguje RST paketem a tím prozradí své IP ID. Pak ho zvýší o 1.
+			Pak dojde k podvržení zdrojové IP a útočník pošle na cíl paket se zdrojovou IP zombie hosta. Odtud už se defacto jedná o SYN scan. Pokud je port otevřen,cíl pošle zombíkovi SYN/ACK a ten zareaguje RSTem.
+			To zvýší IP ID zombie hosta opět o 1.
+			Pokud je port zavřený,zombie dostane RST paket a vyignoruje ho.
+			Pokud port je chráněný,neodpoví.
+			Takže jinak řečeno,v případě otevřeného portu se IP ID zombie hosta zvýší celkem o 2,zatímco u uzavřeného či filtrovaného portu jen o 1.
+			V posledním kroku Idle scanu se útočník znovu zeptá zombie hosta na jeho IP ID a počítá,jak velký je tento rozdíl.
+			Takže je-li rozdíl 2,port je otevřen. Pokud je to 1,port je označen jako <i>closed|filtered</i>. Pokud by to bylo jiné číslo,znamená to,že se nejedná o vhodného zombíka,tedy že se nejedná o "idle" zařízení. Idle zařízení je definováno tak,že na něm nedochází k žádnému jinému provozu.
+			
+			</p>
+			
+			
+			
+		  </td>
+        </tr>      
+
+
+
+      </table>
+      <br>
+
+      <br>
+
+<br>
+      <table align="center" width="480" border="1" bordercolor="#3399cc" cellspacing="1" cellpadding="1" valign="top">
+        <tr> 
+          <td height="20" valign="center"><font face="verdana" size="2">
+            
+		<Div align=center>
+	<font color="#bccbdc" face=verdana size=1>
+	Copyright 2002 (Your Site). Site Designed by  <strong>
+<a href="http://www.quickness.uni.cc">http://www.quickness.uni.cc</a></strong>. All Rights Reserved.
+</div></font></td>
+        </tr>
+      </table>
+      <br>
+
+</tr></table>
+</body></html>
